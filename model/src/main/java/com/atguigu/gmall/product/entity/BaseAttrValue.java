@@ -30,5 +30,6 @@ public class BaseAttrValue implements Serializable {
     /**
      * 属性id
      */
+    @TableField("attr_id")
     private Long attrId;
 }

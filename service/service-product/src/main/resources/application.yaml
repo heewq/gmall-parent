@@ -14,3 +14,10 @@ spring:
 #  sleuth:
 #    sampler:
 #      rate: 100
+
+app:
+  minio:
+    endpoint: http://192.168.206.100:9000
+    access-key: admin
+    secret-key: admin123456
+    bucket-name: mall-oss

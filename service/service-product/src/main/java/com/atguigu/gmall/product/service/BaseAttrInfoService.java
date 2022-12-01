@@ -20,4 +20,18 @@ public interface BaseAttrInfoService extends IService<BaseAttrInfo> {
      * @return
      */
     List<BaseAttrInfo> getBaseAttrAndValue(Long category1Id, Long category2Id, Long category3Id);
+
+    /**
+     * 保存平台属性
+     *
+     * @param baseAttrInfo
+     */
+    void saveAttrInfo(BaseAttrInfo baseAttrInfo);
+
+    /**
+     * 修改平台属性
+     *
+     * @param baseAttrInfo
+     */
+    void updateAttrInfo(BaseAttrInfo baseAttrInfo);
 }

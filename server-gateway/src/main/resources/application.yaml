@@ -22,3 +22,5 @@ spring:
           '[/**]':
             allowedOrigins: "*"
             allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true #身份标识cookie
