@@ -10,6 +10,8 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Api(tags = "品牌管理")
 @RestController
 @RequestMapping("/admin/product")
@@ -17,6 +19,13 @@ public class BaseTrademarkController {
 
     @Autowired
     private BaseTrademarkService baseTrademarkService;
+
+    @ApiOperation("获取所有品牌")
+    @GetMapping("/baseTrademark/getTrademarkList")
+    public Result getTrademarkList() {
+        List<BaseTrademark> trademarkList = baseTrademarkService.list();
+        return Result.ok(trademarkList);
+    }
 
     /**
      * 分页获取品牌列表

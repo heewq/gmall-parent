@@ -1,0 +1,63 @@
+{
+  "id": null,
+  "spuName": " 荣耀80",
+  "description": "品牌： 荣耀（HONOR） 商品名称：荣耀荣耀手机 商品编号：100047337601 商品毛重：500.00g 商品产地：中国大陆 CPU型号：骁龙782G 运行内存：8GB 机身颜色：碧波微蓝 三防标准：不支持防水 屏幕分辨率：FHD+ 充电功率：50-79W 机身内存：256GB 机身色系：蓝色系 屏幕材质：OLED曲面屏 后摄主像素：1.6亿像素 风格：大气，时尚，科技",
+  "category3Id": 61,
+  "spuImageList": [
+    {
+      "imgName": "5.png",
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-02/d67e6ee8-7d9d-4ac0-b038-7dff54478ffd_5.png"
+    },
+    {
+      "imgName": "4.png",
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-02/aa9ab62b-2e51-46a6-bc8d-1e2eaa448955_4.png"
+    },
+    {
+      "imgName": "3.png",
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-02/aadd86c9-8de1-4375-82e4-9a320d74cfec_3.png"
+    },
+    {
+      "imgName": "2.png",
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-02/82f85b8f-b33a-4212-9793-a5075758c98a_2.png"
+    },
+    {
+      "imgName": "1.png",
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-02/3f7db879-57d4-4101-bd85-bceb34866448_1.png"
+    }
+  ],
+  "spuSaleAttrList": [
+    {
+      "baseSaleAttrId": "1",
+      "saleAttrName": "选择颜色",
+      "spuSaleAttrValueList": [
+        {
+          "baseSaleAttrId": "1",
+          "saleAttrValueName": "碧波微蓝"
+        },
+        {
+          "baseSaleAttrId": "1",
+          "saleAttrValueName": "亮黑色"
+        }
+      ]
+    },
+    {
+      "baseSaleAttrId": "2",
+      "saleAttrName": "选择版本",
+      "spuSaleAttrValueList": [
+        {
+          "baseSaleAttrId": "2",
+          "saleAttrValueName": "8+128"
+        },
+        {
+          "baseSaleAttrId": "2",
+          "saleAttrValueName": "12+256"
+        },
+        {
+          "baseSaleAttrId": "2",
+          "saleAttrValueName": "12+512"
+        }
+      ]
+    }
+  ],
+  "tmId": 2
+}
