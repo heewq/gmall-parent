@@ -1,6 +1,6 @@
-package com.atguigu.gmall.common.config.config.minio.config;
+package com.atguigu.gmall.common.config.minio.config;
 
-import com.atguigu.gmall.common.config.config.minio.properties.MinioProperties;
+import com.atguigu.gmall.common.config.minio.properties.MinioProperties;
 import io.minio.MinioClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

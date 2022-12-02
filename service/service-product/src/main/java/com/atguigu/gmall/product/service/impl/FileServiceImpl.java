@@ -1,6 +1,6 @@
 package com.atguigu.gmall.product.service.impl;
 
-import com.atguigu.gmall.common.config.config.minio.properties.MinioProperties;
+import com.atguigu.gmall.common.config.minio.properties.MinioProperties;
 import com.atguigu.gmall.common.util.DateUtil;
 import com.atguigu.gmall.product.service.FileService;
 import io.minio.MinioClient;
