@@ -1,6 +1,7 @@
 package com.atguigu.gmall.product.service;
 
 import com.atguigu.gmall.product.entity.SkuInfo;
+import com.atguigu.gmall.product.vo.SkuSaveVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
@@ -10,4 +11,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface SkuInfoService extends IService<SkuInfo> {
 
+    void saveSkuInfo(SkuSaveVo skuSaveVo);
 }

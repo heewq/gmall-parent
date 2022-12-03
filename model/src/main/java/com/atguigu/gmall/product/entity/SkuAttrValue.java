@@ -32,7 +32,7 @@ public class SkuAttrValue implements Serializable {
      */
     private Long valueId;
     /**
-     * skuid
+     * skuId
      */
     private Long skuId;
 }

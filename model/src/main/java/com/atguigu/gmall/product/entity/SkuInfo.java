@@ -31,7 +31,7 @@ public class SkuInfo implements Serializable {
     /**
      * 价格
      */
-    private Integer price;
+    private BigDecimal price;
     /**
      * sku名称
      */

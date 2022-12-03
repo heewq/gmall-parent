@@ -42,5 +42,5 @@ public class SkuImage implements Serializable {
     /**
      * 是否默认
      */
-    private String isDefault;
+    private Integer isDefault;
 }

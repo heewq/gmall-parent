@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * spu销售属性
@@ -35,4 +36,10 @@ public class SpuSaleAttr implements Serializable {
      * 销售属性名称(冗余)
      */
     private String saleAttrName;
+
+    /**
+     * 销售属性值集合
+     */
+    @TableField(exist = false) // 临时字段
+    private List<SpuSaleAttrValue> spuSaleAttrValueList;
 }
