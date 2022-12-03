@@ -17,6 +17,10 @@ spring:
           uri: lb://service-product
           predicates:
             - Path=/admin/product/**
+        - id: web-all_route
+          uri: lb://web-all
+          predicates:
+            - Host=gmall.com, **.gmall.com
       globalcors:
         cors-configurations:
           '[/**]':

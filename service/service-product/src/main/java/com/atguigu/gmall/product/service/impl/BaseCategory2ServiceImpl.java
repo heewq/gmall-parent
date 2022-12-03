@@ -3,6 +3,7 @@ package com.atguigu.gmall.product.service.impl;
 import com.atguigu.gmall.product.entity.BaseCategory2;
 import com.atguigu.gmall.product.mapper.BaseCategory2Mapper;
 import com.atguigu.gmall.product.service.BaseCategory2Service;
+import com.atguigu.gmall.product.vo.CategoryTreeVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
@@ -23,5 +24,10 @@ public class BaseCategory2ServiceImpl extends ServiceImpl<BaseCategory2Mapper, B
         QueryWrapper<BaseCategory2> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("category1_id", category1Id);
         return baseMapper.selectList(queryWrapper);
+    }
+
+    @Override
+    public List<CategoryTreeVo> getCategoryTree() {
+        return baseMapper.getCategoryTree();
     }
 }

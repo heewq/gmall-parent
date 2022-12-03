@@ -1,6 +1,7 @@
 package com.atguigu.gmall.product.service;
 
 import com.atguigu.gmall.product.entity.BaseCategory2;
+import com.atguigu.gmall.product.vo.CategoryTreeVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface BaseCategory2Service extends IService<BaseCategory2> {
      * @return
      */
     List<BaseCategory2> getCategory2ByC1Id(Long category1Id);
+
+    List<CategoryTreeVo> getCategoryTree();
 }
