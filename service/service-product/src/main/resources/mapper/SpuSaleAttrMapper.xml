@@ -40,4 +40,33 @@
                                AND ssa.base_sale_attr_id = ssav.base_sale_attr_id
         WHERE ssa.spu_id = #{spuId};
     </select>
+
+    <select id="getSpuSaleAttrWithOrder" resultMap="SpuSaleAttrMap">
+        SELECT ssa.*,
+               ssav.id                                        vid,
+               ssav.sale_attr_value_name,
+               IF(skuav.sale_attr_value_id IS NULL, '0', '1') is_checked
+        FROM `spu_sale_attr` ssa
+                 LEFT JOIN `spu_sale_attr_value` ssav
+                           ON ssa.spu_id = ssav.spu_id
+                               AND ssa.base_sale_attr_id = ssav.base_sale_attr_id
+                 LEFT JOIN sku_sale_attr_value skuav
+                           ON skuav.sale_attr_value_id = ssav.id
+                               AND skuav.sku_id = #{skuId}
+        WHERE ssa.spu_id = #{spuId}
+        ORDER BY ssa.base_sale_attr_id, ssav.id;
+    </select>
+    <select id="getValuesSkuJson" resultType="com.atguigu.gmall.product.vo.ValueSkuJsonVo">
+        SELECT a.sku_id,
+               GROUP_CONCAT(DISTINCT a.sale_attr_value_id
+                            ORDER BY a.sale_attr_value_id ASC SEPARATOR '|') value_json
+        FROM (SELECT skuav.sku_id,
+                     skuav.sale_attr_value_id
+              FROM `sku_sale_attr_value` skuav
+                       LEFT JOIN `spu_sale_attr_value` ssav
+                                 ON skuav.sale_attr_value_id = ssav.id
+              WHERE skuav.sku_id IN (SELECT id FROM `sku_info` WHERE spu_id = #{spuId})
+              ORDER BY skuav.sku_id, ssav.base_sale_attr_id, ssav.id) a
+        GROUP BY a.sku_id;
+    </select>
 </mapper>

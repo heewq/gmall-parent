@@ -22,4 +22,6 @@ public interface BaseCategory2Service extends IService<BaseCategory2> {
     List<BaseCategory2> getCategory2ByC1Id(Long category1Id);
 
     List<CategoryTreeVo> getCategoryTree();
+
+    CategoryTreeVo getCategoryTreeWithC3Id(Long c3Id);
 }

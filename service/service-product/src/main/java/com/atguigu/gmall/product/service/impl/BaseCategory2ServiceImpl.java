@@ -30,4 +30,9 @@ public class BaseCategory2ServiceImpl extends ServiceImpl<BaseCategory2Mapper, B
     public List<CategoryTreeVo> getCategoryTree() {
         return baseMapper.getCategoryTree();
     }
+
+    @Override
+    public CategoryTreeVo getCategoryTreeWithC3Id(Long c3Id) {
+        return baseMapper.getCategoryTreeWithC3Id(c3Id);
+    }
 }

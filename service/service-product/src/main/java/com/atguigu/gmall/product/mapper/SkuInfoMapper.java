@@ -10,5 +10,4 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @Entity com.atguigu.gmall.product.entity.SkuInfo
  */
 public interface SkuInfoMapper extends BaseMapper<SkuInfo> {
-
 }

@@ -12,6 +12,7 @@
     <modules>
         <module>service-product</module>
         <module>web-all</module>
+        <module>service-item</module>
     </modules>
 
     <artifactId>service</artifactId>

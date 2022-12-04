@@ -39,4 +39,7 @@ public class SpuSaleAttrValue implements Serializable {
      * 销售属性名称(冗余)
      */
     private String saleAttrName;
+
+    @TableField(exist = false)
+    private String isChecked;
 }
