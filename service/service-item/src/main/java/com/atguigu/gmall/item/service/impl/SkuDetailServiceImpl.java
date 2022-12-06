@@ -2,7 +2,6 @@ package com.atguigu.gmall.item.service.impl;
 
 import com.atguigu.gmall.item.feign.SkuDetailFeignClient;
 import com.atguigu.gmall.item.service.SkuDetailService;
-import com.atguigu.gmall.product.entity.SkuImage;
 import com.atguigu.gmall.product.entity.SkuInfo;
 import com.atguigu.gmall.product.entity.SpuSaleAttr;
 import com.atguigu.gmall.product.vo.CategoryTreeVo;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.atguigu.gmall.product.vo.SkuDetailVo.CategoryViewDTO;
 
@@ -19,20 +20,10 @@ import static com.atguigu.gmall.product.vo.SkuDetailVo.CategoryViewDTO;
 public class SkuDetailServiceImpl implements SkuDetailService {
     @Autowired
     private SkuDetailFeignClient skuDetailFeignClient;
+    @Autowired
+    private ThreadPoolExecutor executor;
 
-    @Override
-    public SkuDetailVo getSkuDetailData(Long skuId) {
-        SkuDetailVo data = new SkuDetailVo();
-
-        // 商品详情
-        SkuInfo skuInfo = skuDetailFeignClient.getSkuInfo(skuId).getData();
-        List<SkuImage> images = skuDetailFeignClient.getImages(skuId).getData();
-        skuInfo.setSkuImageList(images);
-        data.setSkuInfo(skuInfo);
-
-        // 当前商品精确的完整分类信息
-        CategoryTreeVo categoryTree
-                = skuDetailFeignClient.getCategoryTreeWithC3Id(skuInfo.getCategory3Id()).getData();
+    private static CategoryViewDTO getCategoryViewDTO(CategoryTreeVo categoryTree) {
         CategoryViewDTO categoryViewDTO = new CategoryViewDTO();
         categoryViewDTO.setCategory1Id(categoryTree.getCategoryId());
         categoryViewDTO.setCategory1Name(categoryTree.getCategoryName());
@@ -40,19 +31,51 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         categoryViewDTO.setCategory2Name(categoryTree.getCategoryChild().get(0).getCategoryName());
         categoryViewDTO.setCategory3Id(categoryTree.getCategoryChild().get(0).getCategoryChild().get(0).getCategoryId());
         categoryViewDTO.setCategory3Name(categoryTree.getCategoryChild().get(0).getCategoryChild().get(0).getCategoryName());
-        data.setCategoryView(categoryViewDTO);
+        return categoryViewDTO;
+    }
 
-        // 实时价格
-        BigDecimal price = skuDetailFeignClient.getPrice(skuId).getData();
-        data.setPrice(price);
+    @Override
+    public SkuDetailVo getSkuDetailData(Long skuId) {
+        SkuDetailVo data = new SkuDetailVo();
 
-        // 销售属性列表
-        List<SpuSaleAttr> spuSaleAttrs = skuDetailFeignClient.getSpuSaleAttrs(skuInfo.getSpuId(), skuId).getData();
-        data.setSpuSaleAttrList(spuSaleAttrs);
+        CompletableFuture<SkuInfo> skuInfoCompletableFuture = CompletableFuture
+                .supplyAsync(() -> skuDetailFeignClient.getImages(skuId).getData(), executor)
+                .thenApplyAsync(images -> {
+                    // 商品详情
+                    SkuInfo skuInfo = skuDetailFeignClient.getSkuInfo(skuId).getData();
+                    skuInfo.setSkuImageList(images);
+                    data.setSkuInfo(skuInfo);
+                    return skuInfo;
+                }, executor);
 
-        // 同spu下的所有sku(所有销售属性组合)
-        String valuesSkuJson = skuDetailFeignClient.getValuesSkuJson(skuInfo.getSpuId()).getData();
-        data.setValuesSkuJson(valuesSkuJson);
+        CompletableFuture<Void> categoryViewCompletableFuture = skuInfoCompletableFuture
+                .thenAcceptAsync(res -> {
+                    CategoryTreeVo categoryTree = skuDetailFeignClient.getCategoryTreeWithC3Id(res.getCategory3Id()).getData();
+                    CategoryViewDTO categoryViewDTO = getCategoryViewDTO(categoryTree);
+                    data.setCategoryView(categoryViewDTO);
+                }, executor);
+
+        CompletableFuture<Void> priceCompletableFuture = CompletableFuture.runAsync(() -> {
+            BigDecimal price = skuDetailFeignClient.getPrice(skuId).getData();
+            data.setPrice(price);
+        }, executor);
+
+        CompletableFuture<Void> saleAttrCompletableFuture = skuInfoCompletableFuture.thenAcceptAsync(res -> {
+            List<SpuSaleAttr> spuSaleAttrs = skuDetailFeignClient.getSpuSaleAttrs(res.getSpuId(), skuId).getData();
+            data.setSpuSaleAttrList(spuSaleAttrs);
+        }, executor);
+
+        CompletableFuture<Void> valueSkuJsonCompletableFuture = skuInfoCompletableFuture.thenAcceptAsync(res -> {
+            String valuesSkuJson = skuDetailFeignClient.getValuesSkuJson(res.getSpuId()).getData();
+            data.setValuesSkuJson(valuesSkuJson);
+        }, executor);
+
+        CompletableFuture.allOf(
+                        categoryViewCompletableFuture,
+                        priceCompletableFuture,
+                        saleAttrCompletableFuture,
+                        valueSkuJsonCompletableFuture)
+                .join();
 
         return data;
     }

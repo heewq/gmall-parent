@@ -1,6 +1,9 @@
 server:
   port: 8000
 spring:
+  profiles:
+    include: sharding
+
   datasource:
     url: jdbc:mysql://192.168.206.100/gmall_product?useSSL=false
     username: root

@@ -44,4 +44,6 @@ public class ItemController {
 
         return "item/index";
     }
+
+    // todo 平台属性 : 规格与包装
 }
