@@ -3,6 +3,12 @@ server:
 spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+#  redis:
+#    host: 192.168.206.100
+#    port: 6379
+#    password: Lfy123!@!
+
 app:
   thread-pool:
     core-pool-size: 8

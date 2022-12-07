@@ -34,5 +34,5 @@ spring:
           lb:
             type: ROUND_ROBIN
 
-    props:
-      sql-show: true #打印sql
+#    props:
+#      sql-show: true #打印sql

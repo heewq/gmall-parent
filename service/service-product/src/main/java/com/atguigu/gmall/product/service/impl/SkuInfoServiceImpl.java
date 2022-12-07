@@ -1,5 +1,6 @@
 package com.atguigu.gmall.product.service.impl;
 
+import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.product.entity.SkuAttrValue;
 import com.atguigu.gmall.product.entity.SkuImage;
 import com.atguigu.gmall.product.entity.SkuInfo;
@@ -13,6 +14,7 @@ import com.atguigu.gmall.product.vo.SkuSaveVo;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -32,6 +34,8 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
     private SkuAttrValueService skuAttrValueService;
     @Autowired
     private SkuSaleAttrValueService skuSaleAttrValueService;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
 
     @Override
     public void saveSkuInfo(SkuSaveVo skuSaveVo) {
@@ -76,5 +80,8 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo>
                 }).collect(Collectors.toList());
 
         skuSaleAttrValueService.saveBatch(skuSaleAttrValueList);
+
+        // 更新bitmap
+        redisTemplate.opsForValue().setBit(RedisConst.SKUID_BITMAP, skuInfo.getId(), true);
     }
 }
