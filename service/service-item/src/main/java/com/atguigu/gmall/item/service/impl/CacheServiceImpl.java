@@ -21,7 +21,7 @@ public class CacheServiceImpl implements CacheService {
     @Override
     public SkuDetailVo getFromCache(Long skuId) {
         // "sku:info:"
-        log.info("正在查询缓存...");
+//        log.info("正在查询缓存...");
         String json = redisTemplate.opsForValue().get(RedisConst.SKU_DETAIL_CACHE + skuId);
 
         if (StringUtils.isEmpty(json)) {
@@ -29,7 +29,7 @@ public class CacheServiceImpl implements CacheService {
         } else if ("x".equals(json)) {
             return new SkuDetailVo();
         } else {
-            log.info("缓存命中");
+//            log.info("缓存命中");
             return JSON.parseObject(json, SkuDetailVo.class);
         }
     }

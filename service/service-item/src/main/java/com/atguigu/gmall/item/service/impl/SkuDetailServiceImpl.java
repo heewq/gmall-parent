@@ -1,6 +1,7 @@
 package com.atguigu.gmall.item.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.item.feign.SkuDetailFeignClient;
 import com.atguigu.gmall.item.service.CacheService;
 import com.atguigu.gmall.item.service.SkuDetailService;
@@ -10,6 +11,8 @@ import com.atguigu.gmall.product.entity.SpuSaleAttr;
 import com.atguigu.gmall.product.vo.CategoryTreeVo;
 import com.atguigu.gmall.product.vo.SkuDetailVo;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,10 @@ public class SkuDetailServiceImpl implements SkuDetailService {
     @Autowired
     private CacheService cacheService;
 
+    // Distributed Lock
+    @Autowired
+    private RedissonClient redissonClient;
+
     private static CategoryViewDTO getCategoryViewDTO(CategoryTreeVo categoryTree) {
         CategoryViewDTO categoryViewDTO = new CategoryViewDTO();
         categoryViewDTO.setCategory1Id(categoryTree.getCategoryId());
@@ -54,6 +61,54 @@ public class SkuDetailServiceImpl implements SkuDetailService {
 
     @Override
     public SkuDetailVo getSkuDetailData(Long skuId) {
+//        log.info("查询缓存...");
+        SkuDetailVo skuDetail = cacheService.getFromCache(skuId);
+        if (skuDetail != null) {
+            return skuDetail;
+        }
+//        log.info("缓存未命中...判断bitmap中是否存在该数据");
+        Boolean contain = cacheService.mightContain(skuId);
+        if (!contain) {
+//            log.info("bitmap中不存在 疑似攻击请求");
+            return null;
+        }
+//        log.info("加锁...准备回源");
+
+        RLock lock = redissonClient.getLock(RedisConst.SKU_LOCK + skuId);
+        boolean locked = false;
+        try {
+            locked = lock.tryLock();
+            if (locked) {
+//                log.info("抢锁成功 准备回源");
+                skuDetail = getData(skuId);
+
+//                log.info("查询结果存入缓存...");
+                cacheService.saveData(skuId, skuDetail);
+
+                return skuDetail;
+            } else {
+//                log.info("抢锁失败 等待300ms后查询缓存");
+                try {
+                    TimeUnit.MILLISECONDS.sleep(300);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return cacheService.getFromCache(skuId);
+            }
+        } finally {
+            if (locked) {
+                try {
+//                    log.info("正在解锁...");
+                    lock.unlock();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // 本地锁
+    public SkuDetailVo getSkuDetailDataWithLocalLock(Long skuId) {
         SkuDetailVo returnVal;
 
         // 1.查询缓存
