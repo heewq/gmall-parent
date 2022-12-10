@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -35,7 +36,7 @@ public class CacheServiceImpl implements CacheService {
     }
 
     @Override
-    public void saveData(Long skuId, SkuDetailVo returnVal) {
+    public void saveData(Long skuId, Object returnVal) {
         String jsonString = "x";
         if (returnVal != null) {
             jsonString = JSON.toJSONString(returnVal);
@@ -47,5 +48,34 @@ public class CacheServiceImpl implements CacheService {
     @Override
     public Boolean mightContain(Long skuId) {
         return redisTemplate.opsForValue().getBit(RedisConst.SKUID_BITMAP, skuId);
+    }
+
+    @Override
+    public Object getCacheDate(String key, Type returnType) {
+        String json = redisTemplate.opsForValue().get(key);
+
+        if (StringUtils.isEmpty(json)) {
+            return null;
+        } else if ("x".equals(json)) {
+            return new Object();
+        } else {
+//            log.info("缓存命中");
+            return JSON.parseObject(json, returnType);
+        }
+    }
+
+    @Override
+    public Boolean mightContain(String bitmap, Long bitmapKey) {
+        return redisTemplate.opsForValue().getBit(bitmap, bitmapKey);
+    }
+
+    @Override
+    public void saveCache(String cacheKey, Object returnVal, long ttl, TimeUnit unit) {
+        String jsonString = "x";
+        if (returnVal != null) {
+            jsonString = JSON.toJSONString(returnVal);
+        }
+        redisTemplate.opsForValue()
+                .set(cacheKey, jsonString, ttl, unit);
     }
 }

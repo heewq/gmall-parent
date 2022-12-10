@@ -2,6 +2,7 @@ package com.atguigu.gmall.item.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.common.constant.RedisConst;
+import com.atguigu.gmall.item.aspect.annotation.MallCache;
 import com.atguigu.gmall.item.feign.SkuDetailFeignClient;
 import com.atguigu.gmall.item.service.CacheService;
 import com.atguigu.gmall.item.service.SkuDetailService;
@@ -60,7 +61,19 @@ public class SkuDetailServiceImpl implements SkuDetailService {
     }
 
     @Override
+    @MallCache(
+//            cacheKey = RedisConst.SKU_DETAIL_CACHE + "#{#args[0]}",
+            bitmapName = RedisConst.SKUID_BITMAP,
+            bitmapKey = "#{#args[0]}",
+//            lockKey = RedisConst.SKU_LOCK + "#{#args[0]}",
+            ttl = 7,
+            unit = TimeUnit.DAYS
+    )
     public SkuDetailVo getSkuDetailData(Long skuId) {
+        return getData(skuId);
+    }
+
+    public SkuDetailVo getSkuDetailDataWithDistributeLock(Long skuId) {
 //        log.info("查询缓存...");
         SkuDetailVo skuDetail = cacheService.getFromCache(skuId);
         if (skuDetail != null) {
