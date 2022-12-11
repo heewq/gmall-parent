@@ -8,6 +8,7 @@ import com.atguigu.gmall.product.entity.SpuSaleAttr;
 import com.atguigu.gmall.product.service.SkuImageService;
 import com.atguigu.gmall.product.service.SkuInfoService;
 import com.atguigu.gmall.product.service.SpuSaleAttrService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigDecimal;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/inner/rpc/product")
 public class SkuRpcController {

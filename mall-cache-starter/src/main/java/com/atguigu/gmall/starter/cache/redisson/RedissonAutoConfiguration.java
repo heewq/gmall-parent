@@ -1,4 +1,4 @@
-package com.atguigu.gmall.item.config.redisson;
+package com.atguigu.gmall.starter.cache.redisson;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

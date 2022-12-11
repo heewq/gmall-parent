@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.atguigu.gmall.common.config.exception.GlobalExceptionAutoConfiguration,\
+  com.atguigu.gmall.common.config.Swagger2Config,\
+  com.atguigu.gmall.common.config.thread.AppThreadPoolAutoConfiguration

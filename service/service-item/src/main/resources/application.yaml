@@ -3,6 +3,8 @@ server:
 spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  main:
+    allow-bean-definition-overriding: true
 
 #  redis:
 #    host: 192.168.206.100
@@ -15,3 +17,7 @@ app:
     maximum-pool-size: 24
     keep-alive-time: 5 # min
     work-queue-size: 3000
+
+#      service-product:
+#        connect-timeout: 1000
+#        read-timeout: 3000

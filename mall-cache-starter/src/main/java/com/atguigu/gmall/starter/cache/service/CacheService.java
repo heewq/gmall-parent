@@ -1,17 +1,9 @@
-package com.atguigu.gmall.item.service;
-
-import com.atguigu.gmall.product.vo.SkuDetailVo;
+package com.atguigu.gmall.starter.cache.service;
 
 import java.lang.reflect.Type;
 import java.util.concurrent.TimeUnit;
 
 public interface CacheService {
-    SkuDetailVo getFromCache(Long skuId);
-
-    void saveData(Long skuId, Object returnVal);
-
-    Boolean mightContain(Long skuId);
-
     /**
      * 从缓存中获取指定类型的数据
      *
@@ -31,4 +23,11 @@ public interface CacheService {
     Boolean mightContain(String bitmap, Long bitmapKey);
 
     void saveCache(String cacheKey, Object returnVal, long ttl, TimeUnit unit);
+
+    /**
+     * 延迟双删
+     *
+     * @param cacheKey
+     */
+    void delayDoubleDel(String cacheKey);
 }

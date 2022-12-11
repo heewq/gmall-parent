@@ -1,17 +1,22 @@
 package com.atguigu.gmall.web.controller;
 
+import com.atguigu.gmall.feign.item.SkuDetailFeignClient;
+import com.atguigu.gmall.feign.product.ProductSkuDetailFeignClient;
 import com.atguigu.gmall.product.vo.SkuDetailVo;
-import com.atguigu.gmall.web.feign.SkuDetailFeignClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.math.BigDecimal;
+
 @Controller
 public class ItemController {
     @Autowired
     private SkuDetailFeignClient skuDetailFeignClient;
+    @Autowired
+    private ProductSkuDetailFeignClient productSkuDetailFeignClient;
 
     /**
      * 商品详情页
@@ -32,7 +37,8 @@ public class ItemController {
         model.addAttribute("skuInfo", skuDetailVo.getSkuInfo());
 
         // 3.price 实时价格
-        model.addAttribute("price", skuDetailVo.getPrice());
+        BigDecimal price = productSkuDetailFeignClient.getPrice(skuId).getData();
+        model.addAttribute("price", price);
 
         // 4.spuSaleAttrList 销售属性
         model.addAttribute("spuSaleAttrList", skuDetailVo.getSpuSaleAttrList());

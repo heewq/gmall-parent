@@ -1,4 +1,4 @@
-package com.atguigu.gmall.item.aspect.annotation;
+package com.atguigu.gmall.starter.cache.aspect.annotation;
 
 
 import java.lang.annotation.*;
@@ -29,5 +29,5 @@ public @interface MallCache {
 
     long ttl() default 30L;
 
-    TimeUnit unit() default TimeUnit.SECONDS;
+    TimeUnit unit() default TimeUnit.MINUTES;
 }

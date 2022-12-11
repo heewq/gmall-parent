@@ -1,4 +1,4 @@
-package com.atguigu.gmall.item.feign;
+package com.atguigu.gmall.feign.product;
 
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.product.entity.SkuImage;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @FeignClient("service-product")
 @RequestMapping("/api/inner/rpc/product")
-public interface SkuDetailFeignClient {
+public interface ProductSkuDetailFeignClient {
     @GetMapping("category/view/{c3Id}")
     Result<CategoryTreeVo> getCategoryTreeWithC3Id(@PathVariable Long c3Id);
 

@@ -1,32 +1,23 @@
 package com.atguigu.gmall.item.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.common.constant.RedisConst;
-import com.atguigu.gmall.item.aspect.annotation.MallCache;
-import com.atguigu.gmall.item.feign.SkuDetailFeignClient;
-import com.atguigu.gmall.item.service.CacheService;
+import com.atguigu.gmall.feign.product.ProductSkuDetailFeignClient;
 import com.atguigu.gmall.item.service.SkuDetailService;
 import com.atguigu.gmall.product.entity.SkuImage;
 import com.atguigu.gmall.product.entity.SkuInfo;
 import com.atguigu.gmall.product.entity.SpuSaleAttr;
 import com.atguigu.gmall.product.vo.CategoryTreeVo;
 import com.atguigu.gmall.product.vo.SkuDetailVo;
+import com.atguigu.gmall.starter.cache.aspect.annotation.MallCache;
 import lombok.extern.slf4j.Slf4j;
-import org.redisson.api.RLock;
-import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static com.atguigu.gmall.product.vo.SkuDetailVo.CategoryViewDTO;
 
@@ -34,20 +25,9 @@ import static com.atguigu.gmall.product.vo.SkuDetailVo.CategoryViewDTO;
 @Service
 public class SkuDetailServiceImpl implements SkuDetailService {
     @Autowired
-    private SkuDetailFeignClient skuDetailFeignClient;
+    private ProductSkuDetailFeignClient productSkuDetailFeignClient;
     @Autowired
     private ThreadPoolExecutor executor;
-
-    private final Map<Long, SkuDetailVo> cache = new ConcurrentHashMap<>();
-    ReentrantLock lock = new ReentrantLock();
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-    @Autowired
-    private CacheService cacheService;
-
-    // Distributed Lock
-    @Autowired
-    private RedissonClient redissonClient;
 
     private static CategoryViewDTO getCategoryViewDTO(CategoryTreeVo categoryTree) {
         CategoryViewDTO categoryViewDTO = new CategoryViewDTO();
@@ -60,19 +40,7 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         return categoryViewDTO;
     }
 
-    @Override
-    @MallCache(
-//            cacheKey = RedisConst.SKU_DETAIL_CACHE + "#{#args[0]}",
-            bitmapName = RedisConst.SKUID_BITMAP,
-            bitmapKey = "#{#args[0]}",
-//            lockKey = RedisConst.SKU_LOCK + "#{#args[0]}",
-            ttl = 7,
-            unit = TimeUnit.DAYS
-    )
-    public SkuDetailVo getSkuDetailData(Long skuId) {
-        return getData(skuId);
-    }
-
+/*
     public SkuDetailVo getSkuDetailDataWithDistributeLock(Long skuId) {
 //        log.info("查询缓存...");
         SkuDetailVo skuDetail = cacheService.getFromCache(skuId);
@@ -119,8 +87,12 @@ public class SkuDetailServiceImpl implements SkuDetailService {
             }
         }
     }
+*/
 
-    // 本地锁
+    /*
+     * 本地锁
+     */
+/*
     public SkuDetailVo getSkuDetailDataWithLocalLock(Long skuId) {
         SkuDetailVo returnVal;
 
@@ -160,8 +132,12 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         }
         return returnVal;
     }
+*/
 
-    // 缓存空值
+    /*
+     * 缓存空值
+     */
+/*
     public SkuDetailVo getSkuDetailDataNullSave(Long skuId) {
         // sku:info:52 == json
         String json = redisTemplate.opsForValue().get("sku:info:" + skuId);
@@ -184,14 +160,12 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         }
         return JSON.parseObject(json, SkuDetailVo.class);
     }
+*/
 
-    /**
+    /*
      * 本地缓存
-     *
-     * @param skuId
-     * @return
      */
-    public SkuDetailVo getSkuDetailDataLocalCache(Long skuId) {
+/*    public SkuDetailVo getSkuDetailDataLocalCache(Long skuId) {
         // 先查缓存
         SkuDetailVo data = cache.get(skuId);
 
@@ -205,6 +179,19 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         }
 
         return data;
+    }*/
+
+    @Override
+    @MallCache(
+            cacheKey = RedisConst.SKU_DETAIL_CACHE + "#{#args[0]}",
+            bitmapName = RedisConst.SKUID_BITMAP,
+            bitmapKey = "#{#args[0]}",
+            lockKey = RedisConst.SKU_LOCK + "#{#args[0]}",
+            ttl = 7,
+            unit = TimeUnit.DAYS
+    )
+    public SkuDetailVo getSkuDetailData(Long skuId) {
+        return getData(skuId);
     }
 
     /**
@@ -217,12 +204,12 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         SkuDetailVo data = new SkuDetailVo();
 
         CompletableFuture<SkuInfo> skuInfoCompletableFuture
-                = CompletableFuture.supplyAsync(() -> skuDetailFeignClient.getSkuInfo(skuId).getData(), executor);
+                = CompletableFuture.supplyAsync(() -> productSkuDetailFeignClient.getSkuInfo(skuId).getData(), executor);
 
         skuInfoCompletableFuture = skuInfoCompletableFuture
                 .thenApplyAsync(res -> {
                     if (res == null) return null;
-                    List<SkuImage> images = skuDetailFeignClient.getImages(skuId).getData();
+                    List<SkuImage> images = productSkuDetailFeignClient.getImages(skuId).getData();
                     res.setSkuImageList(images);
                     data.setSkuInfo(res);
                     return res;
@@ -231,7 +218,7 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         CompletableFuture<Void> categoryViewCompletableFuture = skuInfoCompletableFuture
                 .thenAcceptAsync(res -> {
                     if (res == null) return;
-                    CategoryTreeVo categoryTree = skuDetailFeignClient.getCategoryTreeWithC3Id(res.getCategory3Id()).getData();
+                    CategoryTreeVo categoryTree = productSkuDetailFeignClient.getCategoryTreeWithC3Id(res.getCategory3Id()).getData();
                     CategoryViewDTO categoryViewDTO = getCategoryViewDTO(categoryTree);
                     data.setCategoryView(categoryViewDTO);
                 }, executor);
@@ -240,7 +227,7 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         CompletableFuture<Void> priceCompletableFuture = CompletableFuture
                 .runAsync(() -> {
                     try {
-                        BigDecimal price = skuDetailFeignClient.getPrice(skuId).getData();
+                        BigDecimal price = productSkuDetailFeignClient.getPrice(skuId).getData();
                         data.setPrice(price);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -250,14 +237,14 @@ public class SkuDetailServiceImpl implements SkuDetailService {
         CompletableFuture<Void> saleAttrCompletableFuture = skuInfoCompletableFuture
                 .thenAcceptAsync(res -> {
                     if (res == null) return;
-                    List<SpuSaleAttr> spuSaleAttrs = skuDetailFeignClient.getSpuSaleAttrs(res.getSpuId(), skuId).getData();
+                    List<SpuSaleAttr> spuSaleAttrs = productSkuDetailFeignClient.getSpuSaleAttrs(res.getSpuId(), skuId).getData();
                     data.setSpuSaleAttrList(spuSaleAttrs);
                 }, executor);
 
         CompletableFuture<Void> valueSkuJsonCompletableFuture = skuInfoCompletableFuture
                 .thenAcceptAsync(res -> {
                     if (res == null) return;
-                    String valuesSkuJson = skuDetailFeignClient.getValuesSkuJson(res.getSpuId()).getData();
+                    String valuesSkuJson = productSkuDetailFeignClient.getValuesSkuJson(res.getSpuId()).getData();
                     data.setValuesSkuJson(valuesSkuJson);
                 }, executor);
 

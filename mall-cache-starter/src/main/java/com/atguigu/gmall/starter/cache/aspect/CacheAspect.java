@@ -1,7 +1,7 @@
-package com.atguigu.gmall.item.aspect;
+package com.atguigu.gmall.starter.cache.aspect;
 
-import com.atguigu.gmall.item.aspect.annotation.MallCache;
-import com.atguigu.gmall.item.service.CacheService;
+import com.atguigu.gmall.starter.cache.aspect.annotation.MallCache;
+import com.atguigu.gmall.starter.cache.service.CacheService;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -15,7 +15,6 @@ import org.springframework.expression.Expression;
 import org.springframework.expression.ParserContext;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
@@ -26,7 +25,7 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 @Aspect
-@Component
+//@Component
 public class CacheAspect {
     // 创建表达式解析器
     SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
@@ -61,7 +60,7 @@ public class CacheAspect {
         return signature.getMethod().getGenericReturnType();
     }
 
-    @Pointcut(value = "@annotation(com.atguigu.gmall.item.aspect.annotation.MallCache)")
+    @Pointcut(value = "@annotation(com.atguigu.gmall.starter.cache.aspect.annotation.MallCache)")
     public void pc() {
     }
 
