@@ -1,0 +1,14 @@
+server:
+  port: 8003
+spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  elasticsearch:
+    rest:
+      uris: http://192.168.206.100:9200
+      connection-timeout: 1s
+      read-timeout: 30s
+logging:
+  level:
+    tracer: trace
+    com.atguigu.gmall.search: trace

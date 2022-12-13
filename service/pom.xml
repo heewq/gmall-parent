@@ -13,6 +13,7 @@
         <module>service-product</module>
         <module>web-all</module>
         <module>service-item</module>
+        <module>service-search</module>
     </modules>
 
     <artifactId>service</artifactId>

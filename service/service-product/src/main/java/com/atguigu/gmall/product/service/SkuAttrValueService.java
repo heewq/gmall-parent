@@ -1,7 +1,10 @@
 package com.atguigu.gmall.product.service;
 
 import com.atguigu.gmall.product.entity.SkuAttrValue;
+import com.atguigu.gmall.search.SearchAttr;
 import com.baomidou.mybatisplus.extension.service.IService;
+
+import java.util.List;
 
 /**
  * @author vcwfhe
@@ -10,4 +13,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface SkuAttrValueService extends IService<SkuAttrValue> {
 
+    /**
+     * 获取某个sku的平台属性
+     *
+     * @param skuId
+     * @return
+     */
+    List<SearchAttr> getSkuAttrsAndValue(Long skuId);
 }

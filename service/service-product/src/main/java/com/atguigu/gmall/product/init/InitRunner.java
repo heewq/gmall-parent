@@ -23,14 +23,16 @@ public class InitRunner implements CommandLineRunner {
         log.info("正在初始化 skuid - bitmap ...");
         List<SkuInfo> skuInfoIds = skuInfoService
                 .lambdaQuery()
-                .select(SkuInfo::getId)
+                .select(SkuInfo::getId, SkuInfo::getIsSale)
                 .list();
 
         skuInfoIds
                 .stream()
                 .parallel()
                 .forEach(skuInfo -> {
-                    redisTemplate.opsForValue().setBit(RedisConst.SKUID_BITMAP, skuInfo.getId(), true);
+                    if (skuInfo.getIsSale() == 1) {
+                        redisTemplate.opsForValue().setBit(RedisConst.SKUID_BITMAP, skuInfo.getId(), true);
+                    }
                 });
 
         log.info("初始 skuid - bitmap 化完成");

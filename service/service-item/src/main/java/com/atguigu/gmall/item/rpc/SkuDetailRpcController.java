@@ -25,6 +25,11 @@ public class SkuDetailRpcController {
     public Result<SkuDetailVo> getSkuDetails(@PathVariable Long skuId) {
         // 获取商品详情数据
         SkuDetailVo skuDetailVo = skuDetailService.getSkuDetailData(skuId);
+
+        // 增加热度分 hotScore
+        skuDetailService.incrHotScore(skuId);
+
+
         return Result.ok(skuDetailVo);
     }
 }

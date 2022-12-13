@@ -18,6 +18,30 @@ public class SkuController {
     @Autowired
     private SkuInfoService skuInfoService;
 
+    /**
+     * 上架
+     *
+     * @param skuId
+     * @return
+     */
+    @GetMapping("/onSale/{skuId}")
+    public Result onSale(@PathVariable Long skuId) {
+        skuInfoService.onSale(skuId);
+        return Result.ok();
+    }
+
+    /**
+     * 下架
+     *
+     * @param skuId
+     * @return
+     */
+    @GetMapping("/cancelSale/{skuId}")
+    public Result cancelSale(@PathVariable Long skuId) {
+        skuInfoService.cancelSale(skuId);
+        return Result.ok();
+    }
+
     @ApiOperation("查询SKU分页列表")
     @GetMapping("/list/{page}/{limit}")
     public Result getSkuList(@PathVariable Long page, @PathVariable Long limit) {

@@ -2,6 +2,7 @@ package com.atguigu.gmall.item.service.impl;
 
 import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.feign.product.ProductSkuDetailFeignClient;
+import com.atguigu.gmall.feign.search.SearchFeignClient;
 import com.atguigu.gmall.item.service.SkuDetailService;
 import com.atguigu.gmall.product.entity.SkuImage;
 import com.atguigu.gmall.product.entity.SkuInfo;
@@ -11,6 +12,7 @@ import com.atguigu.gmall.product.vo.SkuDetailVo;
 import com.atguigu.gmall.starter.cache.aspect.annotation.MallCache;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,6 +30,10 @@ public class SkuDetailServiceImpl implements SkuDetailService {
     private ProductSkuDetailFeignClient productSkuDetailFeignClient;
     @Autowired
     private ThreadPoolExecutor executor;
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+    @Autowired
+    private SearchFeignClient searchFeignClient;
 
     private static CategoryViewDTO getCategoryViewDTO(CategoryTreeVo categoryTree) {
         CategoryViewDTO categoryViewDTO = new CategoryViewDTO();
@@ -192,6 +198,17 @@ public class SkuDetailServiceImpl implements SkuDetailService {
     )
     public SkuDetailVo getSkuDetailData(Long skuId) {
         return getData(skuId);
+    }
+
+    @Override
+    public void incrHotScore(Long skuId) {
+        CompletableFuture.runAsync(() -> {
+            Long increment = redisTemplate.opsForValue().increment(RedisConst.SKU_HOTSCORE + skuId);
+            if (increment % 100 == 0) {
+                // 远程调用ES增加热度
+                searchFeignClient.updateHotScore(skuId, increment);
+            }
+        }, executor);
     }
 
     /**
