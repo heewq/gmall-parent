@@ -17,6 +17,12 @@ spring:
           uri: lb://service-product
           predicates:
             - Path=/admin/product/**
+
+        - id: user_route
+          uri: lb://service-user
+          predicates:
+            - Path=/api/user/**
+
         - id: web-all_route
           uri: lb://web-all
           predicates:
@@ -28,3 +34,15 @@ spring:
             allowedMethods: "*"
             allowedHeaders: "*"
             allowCredentials: true #身份标识cookie
+
+app:
+  auth:
+    anyone-url:
+      - /img/**
+      - /js/**
+      - /css/**
+    deny-url:
+      - /api/inner/**
+    auth-url:
+      - /order/**
+    login-page: http://passport.gmall.com/login.html

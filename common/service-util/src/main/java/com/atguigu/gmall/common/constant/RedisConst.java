@@ -7,4 +7,5 @@ public class RedisConst {
     public static final String SKU_LOCK = "lock:sku:";
     public static final String CATEGORY_CACHE = "categories";
     public static final String SKU_HOTSCORE = "sku:hotScore:";
+    public static final String LOGIN_USER = "login:user:";
 }

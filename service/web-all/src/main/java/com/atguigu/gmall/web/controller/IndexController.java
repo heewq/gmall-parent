@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
@@ -16,7 +17,7 @@ public class IndexController {
     private CategoryFeignClient categoryFeignClient;
 
     @GetMapping("/")
-    public String index(Model model) {
+    public String index(Model model, HttpServletRequest request) {
         List<CategoryTreeVo> list = categoryFeignClient.getCategoryTree().getData();
         model.addAttribute("list", list);
         return "index/index";
