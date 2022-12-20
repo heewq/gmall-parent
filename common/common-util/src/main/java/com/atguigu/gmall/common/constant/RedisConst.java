@@ -8,4 +8,7 @@ public class RedisConst {
     public static final String CATEGORY_CACHE = "categories";
     public static final String SKU_HOTSCORE = "sku:hotScore:";
     public static final String LOGIN_USER = "login:user:";
+    public static final String USER_ID_HEADER = "UserId";
+    public static final String TEMP_ID_HEADER = "TempId";
+    public static final String CART_INFO_KEY = "cart:info:";
 }

@@ -1,6 +1,7 @@
 package com.atguigu.gmall.gateway.filter;
 
 import com.alibaba.fastjson.JSON;
+import com.atguigu.gmall.common.constant.RedisConst;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.common.result.ResultCodeEnum;
 import com.atguigu.gmall.gateway.properties.AuthUrlProperties;
@@ -60,26 +61,32 @@ public class UserAuthGatewayFilter implements GlobalFilter {
                 .stream()
                 .filter(pattern -> pathMatcher.match(pattern, path)).count();
         if (authCount > 0) {
-            String token = getToken(exchange);
+            String token = getAuthInfo(exchange, "token");
             UserInfo userInfo = getUserInfo(token);
             if (StringUtils.isEmpty(token) || userInfo == null) {
                 // redirect
                 return redirectTo(exchange, authUrlProperties.getLoginPage());
             }
         }
-
         // 正常请求
-        UserInfo userInfo = getUserInfo(getToken(exchange));
-
         // 透传id
-        return userIdThrough(chain, exchange, userInfo);
+        return userIdThrough(chain, exchange);
     }
 
-    private Mono<Void> userIdThrough(GatewayFilterChain chain, ServerWebExchange exchange, UserInfo userInfo) {
+    private Mono<Void> userIdThrough(GatewayFilterChain chain, ServerWebExchange exchange) {
         ServerHttpRequest.Builder reqBuilder = exchange.getRequest().mutate();
 
+        // 用户id
+        UserInfo userInfo = getUserInfo(getAuthInfo(exchange, "token"));
         if (userInfo != null) {
-            reqBuilder.header("UserId", userInfo.getId().toString()).build();
+            reqBuilder.header(RedisConst.USER_ID_HEADER, userInfo.getId().toString()).build();
+        }
+
+        // 临时id
+        String tempId = getAuthInfo(exchange, "userTempId");
+        if (!StringUtils.isEmpty(tempId)) {
+            reqBuilder.header(RedisConst.TEMP_ID_HEADER, tempId)
+                    .build();
         }
 
         // 放行
@@ -128,17 +135,17 @@ public class UserAuthGatewayFilter implements GlobalFilter {
      * @param exchange
      * @return
      */
-    private String getToken(ServerWebExchange exchange) {
+    private String getAuthInfo(ServerWebExchange exchange, String authKey) {
         ServerHttpRequest request = exchange.getRequest();
-        String token;
-        token = request.getHeaders().getFirst("token");
-        if (!StringUtils.isEmpty(token)) {
-            return token;
+        String authInfo;
+        authInfo = request.getHeaders().getFirst(authKey);
+        if (!StringUtils.isEmpty(authInfo)) {
+            return authInfo;
         }
-        HttpCookie cookie = request.getCookies().getFirst("token");
+        HttpCookie cookie = request.getCookies().getFirst(authKey);
         if (cookie != null) {
-            token = cookie.getValue();
+            authInfo = cookie.getValue();
         }
-        return token;
+        return authInfo;
     }
 }
