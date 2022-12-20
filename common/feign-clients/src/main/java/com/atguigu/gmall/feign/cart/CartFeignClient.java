@@ -4,6 +4,7 @@ import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.product.entity.SkuInfo;
 import feign.Request;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,4 +24,12 @@ public interface CartFeignClient {
                             @PathVariable Integer skuNum,
                             Request.Options options
     );
+
+    /**
+     * 删除选中的
+     *
+     * @return
+     */
+    @DeleteMapping("/deleteChecked")
+    Result deleteChecked();
 }

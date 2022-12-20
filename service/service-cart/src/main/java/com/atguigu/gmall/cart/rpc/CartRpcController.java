@@ -4,10 +4,7 @@ import com.atguigu.gmall.cart.service.CartService;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.product.entity.SkuInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/inner/rpc/cart")
@@ -30,5 +27,12 @@ public class CartRpcController {
         // 把指定商品添加到指定购物车
         SkuInfo skuInfo = cartService.addToCart(skuId, skuNum, cartKey);
         return Result.ok(skuInfo);
+    }
+
+    @DeleteMapping("/deleteChecked")
+    public Result deleteChecked() {
+        String cartKey = cartService.determineCartKey();
+        cartService.deleteChecked(cartKey);
+        return Result.ok();
     }
 }

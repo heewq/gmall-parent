@@ -32,5 +32,51 @@ public interface CartService {
      */
     void save(String cartKey, CartInfo cartInfo);
 
-    List<CartInfo> getList(String cartKey);
+    /**
+     * 查询某个购物车列表
+     *
+     * @param cartKey
+     * @return
+     */
+    List<CartInfo> getCartInfos(String cartKey);
+
+    /**
+     * 修改商品数量
+     *
+     * @param cartKey
+     * @param skuId
+     * @param skuNum
+     */
+    void updateItemNum(String cartKey, Long skuId, Integer skuNum);
+
+    /**
+     * 修改选中状态
+     *
+     * @param cartKey
+     * @param skuId
+     * @param isChecked
+     */
+    void check(String cartKey, Long skuId, Integer isChecked);
+
+    /**
+     * 删除购物车中某一项
+     *
+     * @param cartKey
+     * @param skuId
+     */
+    void delete(String cartKey, Long skuId);
+
+    /**
+     * 删除选中的商品
+     *
+     * @param cartKey
+     */
+    void deleteChecked(String cartKey);
+
+    /**
+     * 专供购物车列表使用
+     *
+     * @return
+     */
+    List<CartInfo> display();
 }

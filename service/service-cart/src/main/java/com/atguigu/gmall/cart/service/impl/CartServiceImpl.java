@@ -4,9 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.atguigu.gmall.cart.entity.CartInfo;
 import com.atguigu.gmall.cart.service.CartService;
 import com.atguigu.gmall.common.constant.RedisConst;
+import com.atguigu.gmall.common.execption.GmallException;
+import com.atguigu.gmall.common.result.ResultCodeEnum;
 import com.atguigu.gmall.common.util.UserAuthUtil;
 import com.atguigu.gmall.feign.product.ProductSkuDetailFeignClient;
 import com.atguigu.gmall.product.entity.SkuInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -16,14 +19,20 @@ import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class CartServiceImpl implements CartService {
     @Autowired
     private StringRedisTemplate redisTemplate;
     @Autowired
     private ProductSkuDetailFeignClient skuDetailFeignClient;
+    @Autowired
+    private ThreadPoolExecutor executor;
 
     @Override
     public String determineCartKey() {
@@ -96,16 +105,132 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void save(String cartKey, CartInfo cartInfo) {
+        // 单个商品数量限制200
+        if (cartInfo.getSkuNum() >= RedisConst.CART_ITEM_NUM_LIMIT) {
+            throw new GmallException(ResultCodeEnum.CART_ITEM_NUM_OVERFLOW);
+        }
+
+        Long size = redisTemplate.opsForHash().size(cartKey);
+        // 商品总数限制200
+//        redisTemplate.opsForHash()
+//                .put(cartKey, cartInfo.getSkuId().toString(), JSON.toJSONString(cartInfo));
+//        if (size >= 200) {
+//            redisTemplate.opsForHash().delete(cartKey, cartInfo.getSkuId().toString());
+//            throw new GmallException(ResultCodeEnum.CART_ITEM_COUNT_OVERFLOW);
+//        }
+
+        Boolean bool = redisTemplate.opsForHash().hasKey(cartKey, cartInfo.getSkuId().toString());
+        if (!bool && size + 1 >= 200) {
+            throw new GmallException(ResultCodeEnum.CART_ITEM_COUNT_OVERFLOW);
+        }
         redisTemplate.opsForHash()
                 .put(cartKey, cartInfo.getSkuId().toString(), JSON.toJSONString(cartInfo));
     }
 
     @Override
-    public List<CartInfo> getList(String cartKey) {
-        return redisTemplate.opsForHash().values(cartKey)
+    public List<CartInfo> getCartInfos(String cartKey) {
+        List<CartInfo> cartInfos = redisTemplate.opsForHash().values(cartKey)
                 .stream()
                 .map(o -> JSON.parseObject(o.toString(), CartInfo.class))
-                .sorted(((o1, o2) -> o2.getUpdateTime().compareTo(o1.getCreateTime())))
+                .sorted(((o1, o2) -> o2.getCreateTime().compareTo(o1.getCreateTime())))
                 .collect(Collectors.toList());
+        // 同步最新价格
+        CompletableFuture.runAsync(() -> syncPrice(cartKey, cartInfos), executor);
+
+        return cartInfos;
+    }
+
+    private void syncPrice(String cartKey, List<CartInfo> cartInfos) {
+        // todo 节流
+//        Long increment = redisTemplate.opsForValue().increment("price:" + cartKey);
+//        if (increment % 10 == 0) {
+//        }
+        cartInfos.forEach(item -> {
+            BigDecimal currentPrice = skuDetailFeignClient.getPrice(item.getSkuId()).getData();
+            if (Math.abs(item.getSkuPrice().doubleValue() - currentPrice.doubleValue()) >= 0.0001) {
+                // 价格发生了变化
+                log.info("购物车: {} 中的商品: {} 最新价格为: {}", cartKey, item.getSkuId(), currentPrice);
+                item.setSkuPrice(currentPrice);
+                save(cartKey, item);
+            }
+        });
+    }
+
+    @Override
+    public void updateItemNum(String cartKey, Long skuId, Integer skuNum) {
+        CartInfo cartInfo = get(cartKey, skuId);
+        if (skuNum == 1 || skuNum == -1) {
+            cartInfo.setSkuNum(cartInfo.getSkuNum() + skuNum);
+        } else {
+            cartInfo.setSkuNum(skuNum);
+        }
+        save(cartKey, cartInfo);
+    }
+
+    @Override
+    public void check(String cartKey, Long skuId, Integer isChecked) {
+        if (isChecked != 0 && isChecked != 1) {
+            throw new GmallException(ResultCodeEnum.INVALID_PARAM);
+        }
+        CartInfo cartInfo = get(cartKey, skuId);
+        cartInfo.setIsChecked(isChecked);
+        save(cartKey, cartInfo);
+    }
+
+    @Override
+    public void delete(String cartKey, Long skuId) {
+        redisTemplate.opsForHash().delete(cartKey, skuId.toString());
+    }
+
+    @Override
+    public void deleteChecked(String cartKey) {
+        redisTemplate.opsForHash().delete(cartKey, getCartInfos(cartKey)
+                .stream()
+                .filter(o -> o.getIsChecked() == 1)
+                .map(o -> o.getSkuId().toString()).toArray());
+    }
+
+    @Override
+    public List<CartInfo> display() {
+        // 判断用户是否登录 且临时购物车中有数据
+        HttpServletRequest request = UserAuthUtil.request();
+        String tempCartKey = getCartKey(RedisConst.TEMP_ID_HEADER);
+        String userCartKey = getCartKey(RedisConst.USER_ID_HEADER);
+
+        // 用户没有登录 展示临时购物车中的数据
+        if (StringUtils.isEmpty(userCartKey)) {
+            // 给临时购物车设置过期时间
+            Long expire = redisTemplate.getExpire(tempCartKey);
+            if (expire < 0) {
+                redisTemplate.expire(tempCartKey, 365, TimeUnit.DAYS);
+            }
+            return getCartInfos(tempCartKey);
+        }
+
+        // 用户登录 判断是否需要合并
+        try {
+            Long tempSize = redisTemplate.opsForHash().size(tempCartKey);
+            if (tempSize > 0) {
+                // 合并
+                List<CartInfo> tempItems = getCartInfos(tempCartKey);
+                for (CartInfo item : tempItems) {
+                    addToCart(item.getSkuId(), item.getSkuNum(), userCartKey);
+                }
+                //删除临时购物车
+                redisTemplate.delete(tempCartKey);
+            }
+        } catch (Exception e) {
+            // 合并购物车出错 放弃合并
+        }
+        return getCartInfos(userCartKey);
+    }
+
+    private String getCartKey(String key) {
+        HttpServletRequest request = UserAuthUtil.request();
+        String header = request.getHeader(key);
+        if (StringUtils.isEmpty(header)) {
+            return null;
+        }
+        return RedisConst.CART_INFO_KEY + header;
     }
 }

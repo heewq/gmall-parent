@@ -50,4 +50,10 @@ public class CartController {
     public String cart() {
         return "cart/index";
     }
+
+    @GetMapping("/cart/deleteChecked")
+    public String deleteChecked() {
+        cartFeignClient.deleteChecked();
+        return "redirect:http://cart.gmall.com/cart.html";
+    }
 }
