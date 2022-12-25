@@ -1,0 +1,24 @@
+server:
+  port: 8006
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  datasource:
+    url: jdbc:mysql://192.168.206.100:3306/gmall_order?useSSL=false
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+  profiles:
+    include: sharding
+#  rabbitmq:
+#    host: 192.168.206.100
+#    port: 5672
+#    username: admin
+#    password: admin
+#    publisher-confirm-type: correlated
+#    publisher-returns: true
+#    listener:
+#      direct:
+#        acknowledge-mode: manual #消费端手动ack确认
+#        prefetch: 15

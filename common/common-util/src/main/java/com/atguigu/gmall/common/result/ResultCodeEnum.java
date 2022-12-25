@@ -18,6 +18,10 @@ public enum ResultCodeEnum {
     LOGIN_ERROR(2081, "账号或密码错误"),
     PERMISSION(209, "没有权限"),
     INVALID_PARAM(30001, "非法参数"),
+    REPEAT_REQUEST(30002, "重复请求, 请稍后再试"),
+    NO_STOCK(30003, "商品无库存"),
+    PRICE_CHANGED(30004, "商品价格发生变化"),
+
     CART_ITEM_NUM_OVERFLOW(5000, "商品数量不能超过200"),
     CART_ITEM_COUNT_OVERFLOW(5001, "商品品类不能超过200"),
     SECKILL_NO_START(210, "秒杀还没开始"),

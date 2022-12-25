@@ -184,10 +184,18 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void deleteChecked(String cartKey) {
-        redisTemplate.opsForHash().delete(cartKey, getCartInfos(cartKey)
+        redisTemplate.opsForHash().delete(cartKey, getChecked(cartKey)
+                .stream()
+                .map(o -> o.getSkuId().toString()).toArray()
+        );
+    }
+
+    @Override
+    public List<CartInfo> getChecked(String cartKey) {
+        return getCartInfos(cartKey)
                 .stream()
                 .filter(o -> o.getIsChecked() == 1)
-                .map(o -> o.getSkuId().toString()).toArray());
+                .collect(Collectors.toList());
     }
 
     @Override

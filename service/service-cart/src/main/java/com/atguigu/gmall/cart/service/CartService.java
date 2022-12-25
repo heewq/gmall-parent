@@ -79,4 +79,12 @@ public interface CartService {
      * @return
      */
     List<CartInfo> display();
+
+    /**
+     * 获取选中的商品
+     *
+     * @param cartKey
+     * @return
+     */
+    List<CartInfo> getChecked(String cartKey);
 }

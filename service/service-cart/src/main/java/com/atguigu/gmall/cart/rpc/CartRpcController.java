@@ -1,10 +1,13 @@
 package com.atguigu.gmall.cart.rpc;
 
+import com.atguigu.gmall.cart.entity.CartInfo;
 import com.atguigu.gmall.cart.service.CartService;
 import com.atguigu.gmall.common.result.Result;
 import com.atguigu.gmall.product.entity.SkuInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/inner/rpc/cart")
@@ -34,5 +37,12 @@ public class CartRpcController {
         String cartKey = cartService.determineCartKey();
         cartService.deleteChecked(cartKey);
         return Result.ok();
+    }
+
+    @GetMapping("/checked")
+    public Result<List<CartInfo>> getChecked() {
+        String cartKey = cartService.determineCartKey();
+        List<CartInfo> checked = cartService.getChecked(cartKey);
+        return Result.ok(checked);
     }
 }

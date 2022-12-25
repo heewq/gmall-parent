@@ -1,0 +1,120 @@
+spring:
+  shardingsphere:
+    datasource:
+      names: m1, m2, m1s1, m1s2, m2s1, m2s2
+      m1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        jdbcUrl: jdbc:mysql://192.168.206.100:3306/gmall_order_0?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+        username: root
+        password: root
+      m1s1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        jdbcUrl: jdbc:mysql://192.168.206.100:3307/gmall_order_0?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+        username: root
+        password: root
+      m1s2:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        jdbcUrl: jdbc:mysql://192.168.206.100:3308/gmall_order_0?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+        username: root
+        password: root
+      m2:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        jdbcUrl: jdbc:mysql://192.168.206.100:3306/gmall_order_1?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+        username: root
+        password: root
+      m2s1:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        jdbcUrl: jdbc:mysql://192.168.206.100:3307/gmall_order_1?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+        username: root
+        password: root
+      m2s2:
+        type: com.zaxxer.hikari.HikariDataSource
+        driverClassName: com.mysql.jdbc.Driver
+        jdbcUrl: jdbc:mysql://192.168.206.100:3308/gmall_order_1?serverTimezone=UTC&useSSL=false&useUnicode=true&characterEncoding=UTF-8
+        username: root
+        password: root
+    rules:
+      readwrite-splitting:
+        data-sources:
+          m1-rw-ds: #指定一个读写数据源分离的名字
+            type: Static
+            props:
+              write-data-source-name: m1 #写源
+              read-data-source-names: m1s1, m1s2 #读源
+            load-balancer-name: lb #负载均衡算法
+          m2-rw-ds:
+            type: Static
+            props:
+              write-data-source-name: m2
+              read-data-source-names: m2s1, m2s2
+            load-balancer-name: lb
+        load-balancers:
+          lb:
+            type: ROUND_ROBIN
+      #分片配置
+      sharding:
+        default-database-strategy: #配置分库策略
+          standard:
+            sharding-algorithm-name: dbshard_alg
+            sharding-column: user_id
+
+        tables:
+          order_info:
+            actual-data-nodes: m$->{1..2}-rw-ds.order_info_$->{0..2}
+            table-strategy: #配置分表策略
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: order_info_shard_alg
+            key-generate-strategy:
+              column: id
+              key-generator-name: oid_gen
+          order_detail:
+            actual-data-nodes: m$->{1..2}-rw-ds.order_detail_$->{0..2}
+            table-strategy: #配置分表策略
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: order_detail_shard_alg
+          order_status_log:
+            actual-data-nodes: m$->{1..2}-rw-ds.order_status_log_$->{0..2}
+            table-strategy: #配置分表策略
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: order_log_shard_alg
+          payment_info:
+            actual-data-nodes: m$->{1..2}-rw-ds.payment_info_$->{0..2}
+            table-strategy: #配置分表策略
+              standard:
+                sharding-column: user_id
+                sharding-algorithm-name: payment_info_shard_alg
+
+        sharding-algorithms:
+          dbshard_alg:
+            type: INLINE
+            props:
+              algorithm-expression: m$->{user_id%2 + 1}-rw-ds
+          order_info_shard_alg:
+            type: INLINE
+            props:
+              algorithm-expression: order_info_$->{user_id%3}
+          order_detail_shard_alg:
+            type: INLINE
+            props:
+              algorithm-expression: order_detail_$->{user_id%3}
+          order_log_shard_alg:
+            type: INLINE
+            props:
+              algorithm-expression: order_status_log_$->{user_id%3}
+          payment_info_shard_alg:
+            type: INLINE
+            props:
+              algorithm-expression: payment_info_$->{user_id%3}
+        key-generators:
+          oid_gen:
+            type: SNOWFLAKE
+    props:
+      sql-show: true

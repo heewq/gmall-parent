@@ -1,0 +1,24 @@
+{
+  "consignee": "atguigu666",
+  "consigneeTel": "13833456789",
+  "deliveryAddress": "北京市大兴区",
+  "orderComment": "",
+  "orderDetailList": [
+    {
+      "skuId": 53,
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-05/da210deb-3094-4402-a7c4-4ae36af9e7d3_5.png",
+      "skuName": null,
+      "orderPrice": 3299,
+      "skuNum": 1,
+      "hasStock": "1"
+    },
+    {
+      "skuId": 54,
+      "imgUrl": "http://192.168.206.100:9000/mall-oss/2022-12-05/9ec0cfeb-1799-4833-8938-62fe7dacd418_5.png",
+      "skuName": null,
+      "orderPrice": 2698,
+      "skuNum": 1,
+      "hasStock": "0"
+    }
+  ]
+}
