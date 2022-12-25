@@ -27,4 +27,12 @@ public interface OrderBizService {
      * @param userId
      */
     void closeOrder(Long orderId, Long userId);
+
+    /**
+     * 修改订单为已支付
+     *
+     * @param outTradeNo
+     * @param userId
+     */
+    void paidOrder(String outTradeNo, Long userId);
 }

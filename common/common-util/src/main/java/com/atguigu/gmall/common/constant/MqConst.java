@@ -7,4 +7,6 @@ public class MqConst {
     public static final String ORDER_CREAT_RK = "order.creat";
     public static final String ORDER_DEAD_QUEUE = "order-dead-queue";
     public static final Long ORDER_TTL = 30 * 60 * 1000L;
+    public static final String ORDER_PAID_RK = "order.paid";
+    public static final String ORDER_PAID_QUEUE = "order-paid_queue";
 }

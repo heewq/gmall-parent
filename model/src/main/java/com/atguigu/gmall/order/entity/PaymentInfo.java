@@ -4,12 +4,11 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import lombok.Data;
 
 /**
  * 支付信息表
@@ -38,7 +37,7 @@ public class PaymentInfo implements Serializable {
     /**
      * 订单编号
      */
-    private String orderId;
+    private Long orderId;
 
     /**
      * 支付类型（微信 支付宝）

@@ -1,12 +1,12 @@
 package com.atguigu.gmall.order.config;
 
+import com.atguigu.gmall.common.constant.MqConst;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.Exchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import com.atguigu.gmall.common.constant.MqConst;
 
 import java.util.HashMap;
 
@@ -39,6 +39,14 @@ public class MqConfig {
     }
 
     @Bean
+    public Queue orderPaidQueue() {
+        return new Queue(MqConst.ORDER_PAID_QUEUE,
+                true,
+                false,
+                false);
+    }
+
+    @Bean
     public Binding delayBinding() {
         return new Binding(MqConst.ORDER_DELAY_QUEUE,
                 Binding.DestinationType.QUEUE,
@@ -53,6 +61,15 @@ public class MqConfig {
                 Binding.DestinationType.QUEUE,
                 MqConst.ORDER_EVENT_EXCHANGE,
                 MqConst.ORDER_TIMEOUT_RK,
+                null);
+    }
+
+    @Bean
+    public Binding paidBinding() {
+        return new Binding(MqConst.ORDER_PAID_QUEUE,
+                Binding.DestinationType.QUEUE,
+                MqConst.ORDER_EVENT_EXCHANGE,
+                MqConst.ORDER_PAID_RK,
                 null);
     }
 }

@@ -1,0 +1,18 @@
+server:
+  port: 8007
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+app:
+  pay:
+    alipay:
+      app-id: 2021000122601958
+      merchant-private-key: MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQChnrDYE4UrZGgU8yvz/7IkV1Zz20Egq03dcq7YGgUHuL2Os690MpLZOxqf9LeLlbCdD9Z04jbKoNztxbO6ZQ631k/eYEfHjt6o1OlbyBNUv8rM4HnGVpkNKApDrbso5SaKFhApQ3jCZIt/uimtJ3zQaxMwj8a5DC186TiEzBJ3ujemO2nSKi6RkEMMFugu8fOWa4EfuTy/wjz9nnnZ1GAdsPJQKimrA1dBseZmA75H9aHjUrqf5MBB+TTL3q7WbCnVBP0s7oCX9bKlQqEDfyahD5GP+sSj7aazNj/PORp7EeuDIUDLWCM52rIpvRfvhNIFK2oeposmypr8OWPk01ZvAgMBAAECggEAQZXnR9gsC17UiePga0TRIsQ6dgt8k2hQ0dOvNkzgy7BhZB5wzeOUCgldFZo2PbPCFwqNSaNe/r1myiqXc8V8wod6o9BIcKf+nV7BUBiSF6s4/gj+Acm0lE0yVSKUN9U93X10k3oo8CHjJjMCpJzInr9E60j9KKzTbMQrxmAWAnVucNqo+y5hnwJhIBx0glqt/S8XmoUzjdyGGqZcwJXn3RPoa3A+Z6MnNI5YZ7qmyHoKin0v2m32WYz6tZN6P1u3nNuItIKNPntAIaTe2HgAc+FMG2dUa0LrMcEV7C0Fbh1Ofa2O5Vblr1t21SLfX8dwkLlOHO9Wjrm+3nXMyGx/+QKBgQDcRy2F7AhBQ6JNbu+pW+lBTeY5FELvp/pPTAYsgmPPGbuCqIH3b1DtAagh9l+Or0/ayC3QfNAjg2YQnA1ek0l2iu08ux/W1ZB+eNkAp1rqRKPmA2C0HTytrdQcYPFZCOuwPrKkwR7Zw7esH4TmnrpAEdZFN7Fkaib7+5u97A9WkwKBgQC71FND9QBB8OBRenwmNAW869KeIfWrgLiw6hC/KwAX7osaoFNJtjqX/r2WrIsuv3rifI0Nt8rXfHYMqlpoJ72cGF03Wj2c/sEf/TKcHwww7TcfY8smCMWlDE+wT/9zLTiVDEY2v3YuEsvg9wTLktEhs6E8+9nd6qNk3DRPYoguNQKBgAajYnzRsyH8XszElhZdfbcJGPIJaUb9oe531QvMViOsm9kBKQGC6kZqMV3spc6P+/EU7USGLmOTlyTS/xgliiY3Y5Tb8savou4cyDVb1cKPlPzehzCGXQjC30yHo15ShX/HM+0BIOPhIQzf2kp06Bn8L5/gYMks5cXcPEJJ9eBfAoGATP7HtzbKiT1lpuDP3ZU7uOruppYDL++PRi5c+RB2dFj7usl3+uJxeHcbXpWSZHJnvEoUREhQJS9G8QAwGTwZNNCj/ZnHYgDoR+WyBl+Pzsqe6wYsc4XrBzJZxEu2yo8B/89NRQoNNuvLmYeI9q5Tfj41XVtcPuT9X84Iv3YDnvUCgYAZYMEZkW+P7DIyDbBcchw/LTdDVYq1mM6yY9VB+NWkUUJ2D/BtP/TE2OdtP+IVVd+bLY+tuWknl5KNOcT0UYgAPLldX51/7yrMsm03c/+1GWZwMwWZvQN9qh3wYRLKqN42DymZ/rOrDkvZhLWt3bLRymW4nyeOq7DTHDAhxzdgdQ==
+      alipay-public-key: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxExFW6V2Lv7et4u2TnEAInllyzr49QTJcbCzDU6XL4GJiGjEUD13DssnNLQzDM426iDvs1HugQn1fC5/WOQqws9cfoONOp/dmJdnz6gbxQqfLWGCddg38IU0idC/Xr8jy07j2FJadzTIVpyHxfGDx62C5cIm0w+ByQikE1ZfSjQnX5BCZHbKqjsRpjrbAv9NljfiOVQyt+TtT9DIXWMAg5LUd+EUKK4/oPbd/iNBkoWbBgFPRRK8Pjh2mxlHTj5z9Gs1yyUDSdHwWvKe5UaVD1/xe1Mq9tCd8OcuM1gjXCR9Y94VlrQDpghQ8yJAkPqLJUgVrMc6xqyETsWtWrBzgQIDAQAB
+      notify-url: http://frp.xdsee.xyz:8080/api/payment/notify/success
+      return-url: http://payment.gmall.com/pay/success.html
+      sign-type: RSA2
+      charset: utf-8
+      gateway-url: https://openapi.alipaydev.com/gateway.do

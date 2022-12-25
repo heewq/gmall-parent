@@ -1,12 +1,5 @@
 package com.atguigu.gmall.order.biz.impl;
 
-import java.util.Date;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 import com.atguigu.gmall.common.config.mq.MqService;
 import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.constant.RedisConst;
@@ -20,21 +13,26 @@ import com.atguigu.gmall.feign.cart.CartFeignClient;
 import com.atguigu.gmall.feign.product.ProductSkuDetailFeignClient;
 import com.atguigu.gmall.feign.user.UserFeignClient;
 import com.atguigu.gmall.feign.ware.WareFeignClient;
+import com.atguigu.gmall.order.biz.OrderBizService;
 import com.atguigu.gmall.order.entity.OrderDetail;
 import com.atguigu.gmall.order.entity.OrderInfo;
 import com.atguigu.gmall.order.service.OrderDetailService;
 import com.atguigu.gmall.order.service.OrderInfoService;
+import com.atguigu.gmall.order.vo.OrderConfirmRespVo;
 import com.atguigu.gmall.order.vo.OrderSubmitVo;
 import com.atguigu.gmall.user.entity.UserAddress;
-
-import com.atguigu.gmall.order.biz.OrderBizService;
-import com.atguigu.gmall.order.vo.OrderConfirmRespVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -175,6 +173,23 @@ public class OrderBizServiceImpl implements OrderBizService {
                 .eq(OrderInfo::getProcessStatus, ProcessStatus.UNPAID.name())
                 .update();
         log.info("订单: {} 关闭: {}", orderId, update);
+    }
+
+    @Override
+    public void paidOrder(String outTradeNo, Long userId) {
+        // 关单消息和支付消息同时抵达 必须以支付状态为准
+        // 关单先运行 改为已关闭 支付运行后应改为已支付
+        // 支付先运行 改为已支付 关单后运行什么都不做
+        ProcessStatus paid = ProcessStatus.PAID;
+        boolean update = orderInfoService.lambdaUpdate()
+                .set(OrderInfo::getOrderStatus, paid.getOrderStatus().name())
+                .set(OrderInfo::getProcessStatus, paid.name())
+                .eq(OrderInfo::getOutTradeNo, outTradeNo)
+                .eq(OrderInfo::getUserId, userId)
+                .in(OrderInfo::getOrderStatus, OrderStatus.UNPAID.name(), OrderStatus.CLOSED.name())
+                .in(OrderInfo::getProcessStatus, ProcessStatus.UNPAID.name(), ProcessStatus.CLOSED.name())
+                .update();
+        log.info("修改: {} 已支付: {}", outTradeNo, update);
     }
 
     private List<OrderDetail> prepareOrderDetails(OrderSubmitVo submitVo, OrderInfo orderInfo) {
