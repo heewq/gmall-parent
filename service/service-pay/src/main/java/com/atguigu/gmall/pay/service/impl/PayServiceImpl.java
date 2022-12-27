@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.request.AlipayTradePagePayRequest;
+import com.atguigu.gmall.common.util.DateUtil;
 import com.atguigu.gmall.feign.order.OrderFeignClient;
 import com.atguigu.gmall.order.entity.OrderInfo;
 import com.atguigu.gmall.pay.config.properties.AlipayProperties;
@@ -54,6 +55,8 @@ public class PayServiceImpl implements PayService {
         bizContent.put("subject", orderName);
         bizContent.put("product_code", "FAST_INSTANT_TRADE_PAY");
         bizContent.put("body", tradeBody);
+        // 自动关单
+        bizContent.put("time_expire", DateUtil.formatDate(orderInfo.getExpireTime(), "yyyy-MM-dd HH:mm:ss"));
         alipayRequest.setBizContent(JSON.toJSONString(bizContent));
 
         return alipayClient.pageExecute(alipayRequest).getBody();

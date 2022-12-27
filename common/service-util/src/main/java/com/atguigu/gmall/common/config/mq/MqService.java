@@ -7,7 +7,6 @@ import com.rabbitmq.client.Channel;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.lang.Nullable;
 import org.springframework.retry.support.RetryTemplate;
@@ -59,11 +58,11 @@ public class MqService {
     public void retry(Channel channel, long deliveryTag, String content, Integer retryCount) throws IOException {
         String md5 = MD5.encrypt(content);
         // 同一条消息最多重试 retryCount 次
-        Long increment = redisTemplate.opsForValue().increment("msg:count" + md5);
+        Long increment = redisTemplate.opsForValue().increment("msg:count:" + md5);
         Assert.notNull(increment, "");
         if (increment > retryCount) {
             channel.basicAck(deliveryTag, false);
-            redisTemplate.delete("msg:count" + md5);
+            redisTemplate.delete("msg:count:" + md5);
             // todo 记录到数据库
 
             return;

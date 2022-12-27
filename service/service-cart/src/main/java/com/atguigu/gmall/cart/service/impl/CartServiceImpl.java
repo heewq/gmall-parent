@@ -192,8 +192,10 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public List<CartInfo> getChecked(String cartKey) {
-        return getCartInfos(cartKey)
+        return redisTemplate.opsForHash().values(cartKey)
                 .stream()
+                .map(o -> JSON.parseObject(o.toString(), CartInfo.class))
+                .sorted(((o1, o2) -> o2.getCreateTime().compareTo(o1.getCreateTime())))
                 .filter(o -> o.getIsChecked() == 1)
                 .collect(Collectors.toList());
     }

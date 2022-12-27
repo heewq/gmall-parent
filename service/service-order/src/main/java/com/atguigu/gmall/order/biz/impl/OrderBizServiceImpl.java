@@ -1,5 +1,7 @@
 package com.atguigu.gmall.order.biz.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.atguigu.gmall.common.config.mq.MqService;
 import com.atguigu.gmall.common.constant.MqConst;
 import com.atguigu.gmall.common.constant.RedisConst;
@@ -13,13 +15,17 @@ import com.atguigu.gmall.feign.cart.CartFeignClient;
 import com.atguigu.gmall.feign.product.ProductSkuDetailFeignClient;
 import com.atguigu.gmall.feign.user.UserFeignClient;
 import com.atguigu.gmall.feign.ware.WareFeignClient;
+import com.atguigu.gmall.mq.logistic.OrderLogisticMsg;
+import com.atguigu.gmall.mq.ware.WareStockResultMsg;
 import com.atguigu.gmall.order.biz.OrderBizService;
 import com.atguigu.gmall.order.entity.OrderDetail;
 import com.atguigu.gmall.order.entity.OrderInfo;
 import com.atguigu.gmall.order.service.OrderDetailService;
 import com.atguigu.gmall.order.service.OrderInfoService;
 import com.atguigu.gmall.order.vo.OrderConfirmRespVo;
+import com.atguigu.gmall.order.vo.OrderSplitResp;
 import com.atguigu.gmall.order.vo.OrderSubmitVo;
+import com.atguigu.gmall.order.vo.SkuWare;
 import com.atguigu.gmall.user.entity.UserAddress;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -32,6 +38,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -190,6 +197,141 @@ public class OrderBizServiceImpl implements OrderBizService {
                 .in(OrderInfo::getProcessStatus, ProcessStatus.UNPAID.name(), ProcessStatus.CLOSED.name())
                 .update();
         log.info("修改: {} 已支付: {}", outTradeNo, update);
+    }
+
+    @Override
+    public void updateOrderStatus(WareStockResultMsg resultMsg) {
+        // 根据库存扣减结果决定订单要修改的状态
+        ProcessStatus status;
+        if (resultMsg.getStatus().equals("OUT_OF_STOCK")) {
+            status = ProcessStatus.STOCK_EXCEPTION;
+        } else {
+            status = ProcessStatus.WAITING_DELEVER;
+        }
+        OrderInfo orderInfo = orderInfoService.getById(resultMsg.getOrderId());
+        // 修改
+        boolean update = orderInfoService.lambdaUpdate()
+                .set(OrderInfo::getOrderStatus, status.getOrderStatus().name())
+                .set(OrderInfo::getProcessStatus, status.name())
+                .eq(OrderInfo::getId, orderInfo.getId())
+                .eq(OrderInfo::getUserId, orderInfo.getUserId())
+                .eq(OrderInfo::getOrderStatus, OrderStatus.PAID.name())
+                .eq(OrderInfo::getProcessStatus, ProcessStatus.PAID.name())
+                .update();
+        log.info("订单库存状态更新完成");
+
+        // 下电子面单 进行发货
+        if ("DEDUCTED".equals(resultMsg.getStatus())) {
+            OrderLogisticMsg logisticMsg = new OrderLogisticMsg();
+            logisticMsg.setOrderId(orderInfo.getId());
+            logisticMsg.setUserId(orderInfo.getUserId());
+            // 给等待物流配送的订单队列发送消息
+            mqService.send(MqConst.ORDER_EVENT_EXCHANGE, MqConst.ORDER_LOGISTIC_RK, logisticMsg);
+        }
+    }
+
+    @Override
+    public List<OrderSplitResp> orderSplit(Long orderId, String json) {
+        //[{"wareId":"1","skuIds":["53"]},{"wareId":"2","skuIds":["52"]}]
+
+        OrderInfo parentOrder = orderInfoService.getById(orderId);
+
+        // 得到大订单中所有商品的库存分布
+        List<SkuWare> skuWares = JSON.parseObject(json, new TypeReference<List<SkuWare>>() {
+        });
+
+        AtomicInteger subNum = new AtomicInteger(0);
+        // 拆分子订单
+        List<OrderInfo> childOrders = skuWares
+                .stream()
+                .map(skuWare -> {
+                    OrderInfo childOrder = new OrderInfo();
+                    childOrder.setConsignee(parentOrder.getConsignee());
+                    childOrder.setConsigneeTel(parentOrder.getConsigneeTel());
+
+                    List<Long> skuIds = skuWare.getSkuIds();
+
+                    List<OrderDetail> orderDetails = orderDetailService.lambdaQuery()
+                            .eq(OrderDetail::getOrderId, orderId)
+                            .eq(OrderDetail::getUserId, parentOrder.getUserId())
+                            .list();
+                    List<OrderDetail> childDetails = orderDetails.stream()
+                            .filter(orderDetail -> skuIds.contains(orderDetail.getSkuId()))
+                            .collect(Collectors.toList());
+                    childOrder.setOrderDetails(childDetails);
+                    BigDecimal totalAmount = childDetails.stream()
+                            .map(orderDetail -> orderDetail.getOrderPrice().multiply(new BigDecimal(orderDetail.getSkuNum())))
+                            .reduce(BigDecimal::add)
+                            .get();
+                    childOrder.setTotalAmount(totalAmount);
+                    childOrder.setOrderStatus(parentOrder.getOrderStatus());
+                    childOrder.setUserId(parentOrder.getUserId());
+                    childOrder.setPaymentWay(parentOrder.getPaymentWay());
+                    childOrder.setDeliveryAddress(parentOrder.getDeliveryAddress());
+                    childOrder.setOrderComment(parentOrder.getOrderComment());
+                    childOrder.setOutTradeNo(subNum.getAndIncrement() + "_" + parentOrder.getOutTradeNo());
+                    childOrder.setTradeBody(childDetails.get(0).getSkuName());
+                    childOrder.setCreateTime(new Date());
+                    childOrder.setExpireTime(parentOrder.getExpireTime());
+                    childOrder.setProcessStatus(parentOrder.getProcessStatus());
+                    childOrder.setParentOrderId(parentOrder.getId());
+                    childOrder.setImgUrl(childDetails.get(0).getImgUrl());
+                    childOrder.setOperateTime(new Date());
+                    childOrder.setOriginalTotalAmount(totalAmount);
+
+                    // 准备返回数据
+                    childOrder.setWareId(skuWare.getWareId());
+
+                    return childOrder;
+                }).collect(Collectors.toList());
+        for (OrderInfo orderInfo : childOrders) {
+            // 保存子订单
+            orderInfoService.save(orderInfo);
+            Long childId = orderInfo.getId();
+
+            // 保存子订单明细
+            List<OrderDetail> orderDetails = orderInfo.getOrderDetails()
+                    .stream()
+                    .peek(orderDetail -> orderDetail.setOrderId(childId))
+                    .collect(Collectors.toList());
+            orderDetailService.saveBatch(orderDetails);
+        }
+
+        // 更改父订单状态为已拆分
+        boolean update = orderInfoService.lambdaUpdate()
+                .set(OrderInfo::getOrderStatus, OrderStatus.SPLIT.name())
+                .set(OrderInfo::getProcessStatus, ProcessStatus.SPLIT.name())
+                .eq(OrderInfo::getId, parentOrder.getId())
+                .eq(OrderInfo::getUserId, parentOrder.getUserId())
+                .update();
+
+        log.info("拆单完成: {}", parentOrder.getId());
+
+        return childOrders.stream()
+                .map(orderInfo -> {
+                    OrderSplitResp orderSplitResp = new OrderSplitResp();
+                    orderSplitResp.setOrderId(orderInfo.getId());
+                    orderSplitResp.setUserId(orderInfo.getUserId());
+                    orderSplitResp.setConsignee(orderInfo.getConsignee());
+                    orderSplitResp.setConsigneeTel(orderInfo.getConsigneeTel());
+                    orderSplitResp.setOrderComment(orderInfo.getOrderComment());
+                    orderSplitResp.setOrderBody(orderInfo.getTradeBody());
+                    orderSplitResp.setDeliveryAddress(orderInfo.getDeliveryAddress());
+                    orderSplitResp.setPaymentWay("2");
+                    orderSplitResp.setWareId(orderInfo.getWareId());
+
+                    List<OrderSplitResp.OrderSku> orderSkus = orderInfo.getOrderDetails()
+                            .stream()
+                            .map(orderDetail -> {
+                                OrderSplitResp.OrderSku orderSku = new OrderSplitResp.OrderSku();
+                                orderSku.setSkuId(orderDetail.getSkuId());
+                                orderSku.setSkuNum(orderDetail.getSkuNum());
+                                orderSku.setSkuName(orderDetail.getSkuName());
+                                return orderSku;
+                            }).collect(Collectors.toList());
+                    orderSplitResp.setDetails(orderSkus);
+                    return orderSplitResp;
+                }).collect(Collectors.toList());
     }
 
     private List<OrderDetail> prepareOrderDetails(OrderSubmitVo submitVo, OrderInfo orderInfo) {

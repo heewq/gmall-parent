@@ -8,5 +8,9 @@ public class MqConst {
     public static final String ORDER_DEAD_QUEUE = "order-dead-queue";
     public static final Long ORDER_TTL = 30 * 60 * 1000L;
     public static final String ORDER_PAID_RK = "order.paid";
-    public static final String ORDER_PAID_QUEUE = "order-paid_queue";
+    public static final String ORDER_PAID_QUEUE = "order-paid-queue";
+    public static final String WARE_STOCK_EXCHANGE = "exchange.direct.ware.stock";
+    public static final String WARE_STOCK_RK = "ware.stock";
+    public static final String ORDER_LOGISTIC_RK = "order.logistic";
+    public static final String ORDER_LOGISTIC_QUEUE = "order-logistic-queue";
 }

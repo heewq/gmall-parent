@@ -4,6 +4,7 @@ public enum OrderStatus {
     UNPAID("未支付"),
     PAID("已支付"),
     WAITING_DELEVER("待发货"),
+    WAITING_SCHEDULE("等待调货"),
     DELEVERED("已发货"),
     CLOSED("已关闭"),
     FINISHED("已完结"),
@@ -12,7 +13,7 @@ public enum OrderStatus {
     private String comment;
 
     public static String getStatusNameByStatus(String status) {
-        OrderStatus arrObj[] = OrderStatus.values();
+        OrderStatus[] arrObj = OrderStatus.values();
         for (OrderStatus obj : arrObj) {
             if (obj.name().equals(status)) {
                 return obj.getComment();

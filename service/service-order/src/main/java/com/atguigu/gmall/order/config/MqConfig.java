@@ -47,6 +47,14 @@ public class MqConfig {
     }
 
     @Bean
+    public Queue orderLogisticQueue() {
+        return new Queue(MqConst.ORDER_LOGISTIC_QUEUE,
+                true,
+                false,
+                false);
+    }
+
+    @Bean
     public Binding delayBinding() {
         return new Binding(MqConst.ORDER_DELAY_QUEUE,
                 Binding.DestinationType.QUEUE,
@@ -70,6 +78,15 @@ public class MqConfig {
                 Binding.DestinationType.QUEUE,
                 MqConst.ORDER_EVENT_EXCHANGE,
                 MqConst.ORDER_PAID_RK,
+                null);
+    }
+
+    @Bean
+    public Binding logisticBinding() {
+        return new Binding(MqConst.ORDER_LOGISTIC_QUEUE,
+                Binding.DestinationType.QUEUE,
+                MqConst.ORDER_EVENT_EXCHANGE,
+                MqConst.ORDER_LOGISTIC_RK,
                 null);
     }
 }

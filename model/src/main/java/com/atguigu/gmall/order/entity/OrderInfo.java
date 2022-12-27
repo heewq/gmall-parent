@@ -4,12 +4,12 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-
-import lombok.Data;
+import java.util.List;
 
 /**
  * 订单表 订单表
@@ -134,6 +134,18 @@ public class OrderInfo implements Serializable {
      * 运费
      */
     private BigDecimal feightFee;
+
+    /**
+     * 子订单明细
+     */
+    @TableField(exist = false)
+    private List<OrderDetail> orderDetails;
+
+    /**
+     * 仓库 ID
+     */
+    @TableField(exist = false)
+    private Long wareId;
 
     /**
      * 可退款日期（签收后30天）
