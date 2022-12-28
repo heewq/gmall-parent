@@ -7,10 +7,7 @@ import com.atguigu.gmall.order.entity.OrderInfo;
 import com.atguigu.gmall.order.service.OrderInfoService;
 import com.atguigu.gmall.order.vo.OrderConfirmRespVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/inner/rpc/order")
@@ -37,5 +34,17 @@ public class OrderRpcController {
         Long userId = UserAuthUtil.getUserId();
         OrderInfo orderInfo = orderInfoService.getByOrderIdAndUserId(orderId, userId);
         return Result.ok(orderInfo);
+    }
+
+    /**
+     * 保存秒杀单
+     *
+     * @param orderInfo
+     * @return
+     */
+    @PostMapping("/seckill/order")
+    public Result<Long> saveSeckillOrder(@RequestBody OrderInfo orderInfo) {
+        Long orderId = orderBizService.saveSeckillOrder(orderInfo);
+        return Result.ok(orderId);
     }
 }

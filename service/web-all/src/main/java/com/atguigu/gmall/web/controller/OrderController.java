@@ -25,4 +25,9 @@ public class OrderController {
         model.addAttribute("tradeNo", confirmData.getTradeNum());
         return "order/trade";
     }
+
+    @GetMapping("/myOrder.html")
+    public String OrderListPage() {
+        return "order/myOrder";
+    }
 }

@@ -334,6 +334,23 @@ public class OrderBizServiceImpl implements OrderBizService {
                 }).collect(Collectors.toList());
     }
 
+    @Override
+    public Long saveSeckillOrder(OrderInfo orderInfo) {
+        // 保存订单数据
+        boolean save = orderInfoService.save(orderInfo);
+        // 保存订单明细
+        List<OrderDetail> orderDetails = orderInfo.getOrderDetails()
+                .stream()
+                .peek(orderDetail -> {
+                    orderDetail.setOrderId(orderInfo.getId()); // 回填 Id
+                }).collect(Collectors.toList());
+        orderDetailService.saveBatch(orderDetails);
+
+        // todo 可用mq独立设计一套后续流程
+
+        return orderInfo.getId();
+    }
+
     private List<OrderDetail> prepareOrderDetails(OrderSubmitVo submitVo, OrderInfo orderInfo) {
         return submitVo.getOrderDetailList()
                 .stream()

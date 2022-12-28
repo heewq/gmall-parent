@@ -13,4 +13,7 @@ public class MqConst {
     public static final String WARE_STOCK_RK = "ware.stock";
     public static final String ORDER_LOGISTIC_RK = "order.logistic";
     public static final String ORDER_LOGISTIC_QUEUE = "order-logistic-queue";
+    public static final String SECKILL_EVENT_EXCHANGE = "seckill-event-exchange";
+    public static final String SECKILL_ORDER_RK = "seckill.order";
+    public static final String SECKILL_ORDER_QUEUE = "seckill-order-queue";
 }

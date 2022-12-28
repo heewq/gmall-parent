@@ -1,6 +1,7 @@
 package com.atguigu.gmall.order.biz;
 
 import com.atguigu.gmall.mq.ware.WareStockResultMsg;
+import com.atguigu.gmall.order.entity.OrderInfo;
 import com.atguigu.gmall.order.vo.OrderConfirmRespVo;
 import com.atguigu.gmall.order.vo.OrderSplitResp;
 import com.atguigu.gmall.order.vo.OrderSubmitVo;
@@ -43,4 +44,12 @@ public interface OrderBizService {
     void updateOrderStatus(WareStockResultMsg resultMsg);
 
     List<OrderSplitResp> orderSplit(Long orderId, String json);
+
+    /**
+     * 保存秒杀单
+     *
+     * @param orderInfo
+     * @return
+     */
+    Long saveSeckillOrder(OrderInfo orderInfo);
 }

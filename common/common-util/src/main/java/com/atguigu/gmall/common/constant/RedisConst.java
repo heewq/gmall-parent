@@ -13,4 +13,7 @@ public class RedisConst {
     public static final String CART_INFO_KEY = "cart:info:";
     public static final Integer CART_ITEM_NUM_LIMIT = 200;
     public static final String REPEAT_TOKEN = "repeat:token:";
+    public static final String SECKILL_GOODS_CACHE = "seckill:goods:";
+    public static final String SECKILL_CODE = "seckill:code:";
+    public static final String SECKILL_ORDER = "seckill:order:";
 }
