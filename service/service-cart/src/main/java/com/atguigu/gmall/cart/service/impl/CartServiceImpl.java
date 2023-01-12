@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -203,14 +204,16 @@ public class CartServiceImpl implements CartService {
     @Override
     public List<CartInfo> display() {
         // 判断用户是否登录 且临时购物车中有数据
-        HttpServletRequest request = UserAuthUtil.request();
+//        HttpServletRequest request = UserAuthUtil.request();
         String tempCartKey = getCartKey(RedisConst.TEMP_ID_HEADER);
         String userCartKey = getCartKey(RedisConst.USER_ID_HEADER);
+        Assert.notNull(tempCartKey, "购物车为空, 请添加购物车");
 
         // 用户没有登录 展示临时购物车中的数据
         if (StringUtils.isEmpty(userCartKey)) {
             // 给临时购物车设置过期时间
             Long expire = redisTemplate.getExpire(tempCartKey);
+            assert expire != null;
             if (expire < 0) {
                 redisTemplate.expire(tempCartKey, 365, TimeUnit.DAYS);
             }

@@ -43,14 +43,17 @@ public class UserAuthGatewayFilter implements GlobalFilter {
         // 静态资源直接放行
         long count = authUrlProperties.getAnyoneUrl()
                 .stream()
-                .filter(pattern -> pathMatcher.match(pattern, path)).count();
+                .filter(pattern -> pathMatcher.match(pattern, path))
+                .count();
         if (count > 0) {
             return chain.filter(exchange);
         }
 
         // 内部接口拒绝访问
         long denyCount = authUrlProperties.getDenyUrl()
-                .stream().filter(pattern -> pathMatcher.match(pattern, path)).count();
+                .stream()
+                .filter(pattern -> pathMatcher.match(pattern, path))
+                .count();
         if (denyCount > 0) {
             Result<String> result = Result.build("", ResultCodeEnum.PERMISSION);
             return responseJson(exchange, result);
@@ -59,7 +62,8 @@ public class UserAuthGatewayFilter implements GlobalFilter {
         // 有限权限访问[需要登录]
         long authCount = authUrlProperties.getAuthUrl()
                 .stream()
-                .filter(pattern -> pathMatcher.match(pattern, path)).count();
+                .filter(pattern -> pathMatcher.match(pattern, path))
+                .count();
         if (authCount > 0) {
             String token = getAuthInfo(exchange, "token");
             UserInfo userInfo = getUserInfo(token);

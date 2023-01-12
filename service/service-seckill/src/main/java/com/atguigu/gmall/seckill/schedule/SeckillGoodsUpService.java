@@ -24,8 +24,8 @@ public class SeckillGoodsUpService {
     private StringRedisTemplate redisTemplate;
 
     // 每天晚上2点上架秒杀的商品
-    @Scheduled(cron = "0 0 2 * * ?") // 生产环境
-//    @Scheduled(cron = "0 * * * * ?")
+//    @Scheduled(cron = "0 0 2 * * ?") // 生产环境
+    @Scheduled(cron = "0 * * * * ?")
     public void upGoods() {
         log.info("上架当天参与秒杀的所有商品");
         String date = DateUtil.formatDate(new Date());
